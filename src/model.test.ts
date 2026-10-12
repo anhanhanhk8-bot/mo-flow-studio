@@ -1,0 +1,7 @@
+import { describe, expect, it } from 'vitest';
+import { newProject, makeScenes, promptFor } from './model';
+describe('Kịch bản và prompt', () => {
+ it('tạo đúng 3 hoặc 4 cảnh, giữ cảnh kết thúc', () => {const p={...newProject(),name:'Sản phẩm mẫu'};expect(makeScenes(p)).toHaveLength(4); const scenes=makeScenes({...p,count:3});expect(scenes).toHaveLength(3);expect(scenes[2].title).toContain('Kết thúc');expect(new Set(scenes.map(s=>s.id)).size).toBe(3);});
+ it('không có lời thoại khi chọn video không lời',()=>{const p={...newProject(),name:'Mẫu',voice:'none' as const};const scenes=makeScenes(p);expect(scenes.every(s=>s.dialogue==='')).toBe(true);expect(promptFor(p,scenes[0],0)).toContain('Không lời thoại');});
+ it('mọi prompt giữ nhân vật, sản phẩm, tỷ lệ và tham chiếu riêng của cảnh',()=>{const photo={id:'photo',name:'san-pham.png',data:'data:image/png;base64,AA'};const p={...newProject(),name:'Bình nước',description:'Màu xanh',character:'Áo trắng, tóc đen',ratio:'16:9' as const,voice:'male' as const,products:[photo],characters:[{...photo,name:'nhan-vat.png'}]};for(const [i,s] of makeScenes(p).entries()){const prompt=promptFor(p,{...s,first:{...photo,name:'dau.png'},last:{...photo,name:'cuoi.png'}},i);for(const phrase of ['Bình nước','Màu xanh','Áo trắng, tóc đen','16:9','Giọng nam','Giữ nguyên danh tính','san-pham.png','nhan-vat.png','dau.png','cuoi.png']) expect(prompt).toContain(phrase);if(i>0)expect(prompt).toContain('Tiếp nối');}});
+});
